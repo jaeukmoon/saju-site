@@ -75,9 +75,11 @@ function kstToday(){
   var p = function(x){ return String(x).padStart(2,'0'); };
   return n.getUTCFullYear()+'-'+p(n.getUTCMonth()+1)+'-'+p(n.getUTCDate());
 }
-fetch('data/daily.json?_=' + Date.now())
-  .then(function(r){ if(!r.ok) throw 0; return r.json(); })
-  .then(function(d){
+Promise.all([
+  fetch('data/daily.json?_=' + Date.now()).then(function(r){ if(!r.ok) throw 0; return r.json(); }),
+  fetch('data/daily_ai.json?_=' + Date.now()).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; })
+]).then(function(res){
+    var d = res[0], ai = res[1];
     var catHtml = d.cats.map(function(c){
       return '<div class="cat"><div class="t"><b>'+c.label+'</b><span>'+c.score+'점</span></div>'+
         '<div class="bar"><i style="width:'+c.score+'%"></i></div><p>'+c.text+'</p>'+
@@ -86,10 +88,19 @@ fetch('data/daily.json?_=' + Date.now())
     }).join('');
     var stale = d.date !== kstToday()
       ? '<div class="stale">가장 최근 생성분은 '+d.date+' 운세입니다. 오늘 아침 자동 생성이 아직 실행되지 않았어요.</div>' : '';
+    var aiHtml;
+    if (ai && ai.date === d.date) {
+      aiHtml = '<div class="card"><h2>오늘의 종합 해석 <small>Claude 세션 작성</small></h2>'+
+        '<div class="prose"><span class="badge">'+ai.oneLiner+'</span>'+
+        ai.text.map(function(p){ return '<p style="margin-top:10px">'+p+'</p>'; }).join('')+'</div></div>';
+    } else {
+      aiHtml = '<div class="card" style="color:var(--dim);font-size:12.5px">오늘의 종합 해석은 아직 작성되지 않았습니다. Claude 세션이 열리면 자동으로 보강됩니다.</div>';
+    }
     document.getElementById('app').innerHTML = stale +
       '<div class="card"><div class="greet"><span class="hl">'+d.name+'</span>님의 '+d.date+' 운세</div>'+
       '<div class="greet-sub">명식 '+d.saju.year+' '+d.saju.month+' '+d.saju.day+(d.saju.hour?' '+d.saju.hour:'')+
       ' · 오늘 일진 '+d.todayPillar+' ('+d.tenGod+(d.branchRel?'·'+d.branchRel:'')+')</div></div>'+
+      aiHtml+
       '<div class="card"><h2>오늘의 운세 <small>'+d.generated_kst+' KST 생성</small></h2>'+
       '<div class="hero"><div class="donut" style="--p:'+d.tot+'"><b>'+d.tot+'<small>총운</small></b></div>'+
       '<p>'+d.heroText+'</p></div>'+
