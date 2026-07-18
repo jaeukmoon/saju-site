@@ -80,7 +80,9 @@ fetch('data/daily.json?_=' + Date.now())
   .then(function(d){
     var catHtml = d.cats.map(function(c){
       return '<div class="cat"><div class="t"><b>'+c.label+'</b><span>'+c.score+'점</span></div>'+
-        '<div class="bar"><i style="width:'+c.score+'%"></i></div><p>'+c.text+'</p></div>';
+        '<div class="bar"><i style="width:'+c.score+'%"></i></div><p>'+c.text+'</p>'+
+        (c.base?'<p style="font-size:11.5px;color:var(--dim);margin-top:3px;line-height:1.5">'+c.base+'</p>':'')+
+        '</div>';
     }).join('');
     var stale = d.date !== kstToday()
       ? '<div class="stale">가장 최근 생성분은 '+d.date+' 운세입니다. 오늘 아침 자동 생성이 아직 실행되지 않았어요.</div>' : '';

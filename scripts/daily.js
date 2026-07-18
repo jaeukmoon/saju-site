@@ -32,6 +32,7 @@ const now = new Date(Date.now() + 9 * 3600000); // KST
 const t = { y: now.getUTCFullYear(), mo: now.getUTCMonth() + 1, d: now.getUTCDate() };
 const df = F.daily(S, res, input, t);
 const yf = F.yearly(S, res, df.tp);
+const dom = F.domains(S, res);
 
 const pill = p => S.STEMS[p.stem] + S.BRANCHES[p.branch];
 const pillH = p => S.STEMS_H[p.stem] + S.BRANCHES_H[p.branch];
@@ -54,7 +55,7 @@ const out = {
   branchRel: df.rel,
   tot: df.tot,
   heroText: df.heroText,
-  cats: df.cats.map(c => ({ label: c.label, score: c.score, text: c.text })),
+  cats: df.cats.map(c => ({ label: c.label, score: c.score, text: c.text, base: dom[c.key] })),
   lucky: df.lucky,
   yearly: { year: `${df.tp.sajuYear} ${pill(df.tp.year)}년`, tg: yf.tg, text: yf.text }
 };

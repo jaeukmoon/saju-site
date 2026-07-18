@@ -58,21 +58,24 @@
     work:{hi:['능력을 인정받는 날입니다. 미뤄 둔 보고·제안을 오늘 꺼내 보세요.','윗사람의 시선이 호의적입니다. 책임 있는 태도가 기회로 이어집니다.'],
           mid:['맡은 일을 담담히 해내는 것이 최선인 날입니다. 무리한 확장은 금물입니다.','루틴을 지키면 중간 이상은 가는 날입니다. 협업 조율에 신경 쓰세요.'],
           lo:['의욕만 앞서면 마찰이 생깁니다. 오늘은 조율과 경청이 실력입니다.','결재·발표 등 공적인 일은 가능하면 미루세요. 오늘은 다듬는 날입니다.']},
+    study:{hi:['집중력이 최고조인 날입니다. 어려운 개념도 오늘은 머리에 잘 들어옵니다.','배움의 운이 열렸습니다. 미뤄 둔 공부나 자격증 준비를 시작해 보세요.'],
+          mid:['평소만큼은 되는 날입니다. 복습과 정리 위주로 가면 알차게 남습니다.','짧게 여러 번 끊어 공부하는 것이 오늘의 효율을 살립니다.'],
+          lo:['집중이 흩어지기 쉬운 날입니다. 욕심내지 말고 분량을 줄여 확실히 잡으세요.','암기보다 이해 위주로, 공부 환경부터 정리하면 흐름이 돌아옵니다.']},
     health:{hi:['컨디션이 가볍게 올라오는 날입니다. 미뤄 둔 운동을 시작하기 좋습니다.','활력이 도는 하루입니다. 몸을 움직일수록 운이 함께 돕니다.'],
           mid:['무난한 컨디션이지만 과로는 금물입니다. 수면 리듬을 지키세요.','큰 탈은 없는 날입니다. 물을 자주 마시고 스트레칭을 챙기세요.'],
           lo:['피로가 쌓이기 쉬운 날입니다. 무리한 일정은 덜어내고 일찍 쉬세요.','면역이 떨어지기 쉬우니 찬 음식과 과음은 피하는 것이 좋습니다.']}
   };
   var TG_FX = {
-    '비견':{tot:5, love:0, money:-8, work:5, health:5},
-    '겁재':{tot:-5, love:-5, money:-15, work:0, health:0},
-    '식신':{tot:10, love:10, money:8, work:5, health:12},
-    '상관':{tot:2, love:6, money:5, work:-12, health:0},
-    '편재':{tot:6, love:10, money:14, work:0, health:-4},
-    '정재':{tot:10, love:6, money:16, work:6, health:2},
-    '편관':{tot:-8, love:-4, money:-5, work:6, health:-10},
-    '정관':{tot:10, love:6, money:2, work:16, health:2},
-    '편인':{tot:0, love:-6, money:-4, work:2, health:-6},
-    '정인':{tot:10, love:5, money:2, work:12, health:6}
+    '비견':{tot:5, love:0, money:-8, work:5, study:2, health:5},
+    '겁재':{tot:-5, love:-5, money:-15, work:0, study:-2, health:0},
+    '식신':{tot:10, love:10, money:8, work:5, study:6, health:12},
+    '상관':{tot:2, love:6, money:5, work:-12, study:4, health:0},
+    '편재':{tot:6, love:10, money:14, work:0, study:-6, health:-4},
+    '정재':{tot:10, love:6, money:16, work:6, study:-4, health:2},
+    '편관':{tot:-8, love:-4, money:-5, work:6, study:0, health:-10},
+    '정관':{tot:10, love:6, money:2, work:16, study:6, health:2},
+    '편인':{tot:0, love:-6, money:-4, work:2, study:10, health:-6},
+    '정인':{tot:10, love:5, money:2, work:12, study:14, health:6}
   };
   var REL_FX = {'육합':10,'삼합':8,'충':-14,'형':-9,'파':-6,'해':-6};
   var ELEM_DESC = ['성장·시작·기획','열정·표현·확산','신뢰·중심·안정','결단·원칙·마무리','지혜·유연함·저장'];
@@ -88,7 +91,7 @@
   var LUCKY_NUM = [[3,8],[2,7],[5,10],[4,9],[1,6]];
   var CATS = [
     {key:'love', label:'애정운'}, {key:'money', label:'재물운'},
-    {key:'work', label:'직장·학업운'}, {key:'health', label:'건강운'}
+    {key:'work', label:'직장운'}, {key:'study', label:'학업운'}, {key:'health', label:'건강운'}
   ];
 
   function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
@@ -139,8 +142,67 @@
       (counts[weak] === 0 ? '팔자에 드러나 있지 않습니다' : '상대적으로 약합니다') + '. ' + ELEM_LACK[weak];
   }
 
+  /* ---- 분야별 원국 풀이 (chart-based domain readings) ---- */
+  var ELEM_ORGAN = ['간·눈·근육', '심장·혈압·순환', '위장·소화기', '폐·호흡기·피부', '신장·방광·수분대사'];
+  var GUNG_TXT = {
+    bi: '배우자궁(일지)에 비겁이 있어 친구처럼 편안한 관계를 지향합니다.',
+    sik: '배우자궁(일지)에 식상이 있어 표현과 애정이 풍부한 관계를 만듭니다.',
+    jae: '배우자궁(일지)에 재성이 있어 현실적이고 알뜰한 파트너십을 꾸립니다.',
+    gwan: '배우자궁(일지)에 관성이 있어 서로 존중하는 반듯한 관계를 지향합니다.',
+    in: '배우자궁(일지)에 인성이 있어 정신적 교감을 중시하는 관계를 만듭니다.'
+  };
+  var LOVE_TXT = [
+    '사주 원국에 배우자성(남자는 재성, 여자는 관성)이 뚜렷하게 드러나 있지 않은 편입니다. 인연이 없다는 뜻이 아니라 연애가 저절로 굴러오지 않는 구조라, 모임·소개 같은 만남의 장에 의식적으로 나가야 기회가 생깁니다.',
+    '배우자성이 알맞게 자리 잡아 연애·결혼운이 안정적인 구조입니다. 무리하게 서두르지 않아도 때가 되면 인연이 이어지는 편이며, 관계에서 균형 감각이 좋습니다.',
+    '배우자성이 강하게 발달해 이성에게 관심과 기회가 많은 구조입니다. 선택지가 많은 만큼 관계가 겹치거나 비교하는 습관이 생기기 쉬우니, 한 사람에게 집중하는 것이 관계의 질을 높입니다.'
+  ];
+  var MONEY_TXT = [
+    '원국에 재성이 드러나지 않아 돈을 좇기보다 실력을 쌓아 돈이 따라오게 하는 유형입니다. 전문성과 기술이 최고의 재테크입니다.',
+    '재성이 알맞게 자리해 꾸준히 모으는 안정형 재물운입니다. 큰 투기보다 저축과 장기 투자가 체질에 맞습니다.',
+    '재성이 왕성해 돈의 흐름을 읽는 감각이 좋고 벌 기회도 많은 유형입니다. 다만 들어오는 만큼 나가기 쉬우니, 자동 저축·분산처럼 지키는 구조를 만드는 것이 관건입니다.'
+  ];
+  var WORK_TXT = [
+    '관성이 드러나지 않아 조직의 틀보다 자율적인 환경에서 능력이 사는 유형입니다. 전문직·프리랜서·연구처럼 성과로 말하는 자리가 잘 맞습니다.',
+    '관성이 균형 있게 자리해 조직 적응력이 좋고, 책임을 맡을수록 성장하는 유형입니다. 승진과 평판 관리에 유리한 구조입니다.',
+    '관성이 강해 책임감과 직업적 성취욕이 크지만, 그만큼 업무 압박과 스트레스도 크게 받는 구조입니다. 일과 휴식의 경계를 지키는 것이 롱런의 조건입니다.'
+  ];
+  var STUDY_TXT = [
+    '인성이 드러나지 않아 책상 공부보다 몸으로 부딪치며 배우는 실전형입니다. 프로젝트·실습 중심 학습이 효율을 높입니다.',
+    '인성이 안정적으로 자리해 배움을 받아들이는 그릇이 좋은 유형입니다. 꾸준한 학습 루틴이 성과로 직결됩니다.',
+    '인성이 발달해 학문·연구·자격에 강한 전형적인 공부 사주입니다. 다만 생각이 많아, 배운 것을 실제로 써먹는 실행이 과제가 됩니다.'
+  ];
+  var TG_GROUP = {비견:'bi',겁재:'bi',식신:'sik',상관:'sik',편재:'jae',정재:'jae',편관:'gwan',정관:'gwan',편인:'in',정인:'in'};
+
+  function domains(S, res) {
+    var ds = res.day.stem;
+    var mainStem = function (p) { var h = S.HIDDEN[p.branch]; return h[h.length - 1]; };
+    var pillars = [res.year, res.month, res.day].concat(res.hour ? [res.hour] : []);
+    var g = { bi: 0, sik: 0, jae: 0, gwan: 0, in: 0 };
+    var stems = [res.year.stem, res.month.stem].concat(res.hour ? [res.hour.stem] : []);
+    stems.concat(pillars.map(mainStem)).forEach(function (s) { g[TG_GROUP[S.tenGod(ds, s)]]++; });
+    var spouseGung = TG_GROUP[S.tenGod(ds, mainStem(res.day))];
+    var counts = [0, 0, 0, 0, 0];
+    pillars.forEach(function (p) { counts[S.STEM_ELEM[p.stem]]++; counts[S.BRANCH_ELEM[p.branch]]++; });
+    var weak = counts.indexOf(Math.min.apply(null, counts));
+    var strong = counts.indexOf(Math.max.apply(null, counts));
+    var lv = function (n) { return n === 0 ? 0 : (n <= 2 ? 1 : 2); };
+    var starN = res.gender === 'F' ? g.gwan : g.jae;
+    var health = '오행 중 ' + S.ELEMS[weak] + '(' + S.ELEMS_H[weak] + ') 기운이 약한 편이라 ' + ELEM_ORGAN[weak] +
+      ' 쪽 컨디션을 평소에 챙기는 것이 좋습니다.' +
+      (counts[strong] >= (res.hour ? 4 : 3)
+        ? ' 반대로 ' + S.ELEMS[strong] + '(' + S.ELEMS_H[strong] + ') 기운이 과해 생활이 한쪽으로 몰아치기 쉬우니 페이스 조절이 중요합니다.'
+        : '') + ' 규칙적인 수면이 모든 보약의 기본입니다.';
+    return {
+      love: LOVE_TXT[lv(starN)] + ' ' + GUNG_TXT[spouseGung],
+      money: MONEY_TXT[lv(g.jae)] + (g.sik >= 2 ? ' 식상이 재성을 받쳐 주어 아이디어와 활동이 곧 수입으로 연결되는 좋은 구조입니다.' : ''),
+      work: WORK_TXT[lv(g.gwan)] + (g.in >= 2 ? ' 인성이 관을 받쳐 윗사람의 신임과 승진운이 따르는 조합입니다.' : ''),
+      study: STUDY_TXT[lv(g.in)] + (g.sik >= 2 ? ' 식상이 함께 있어 배운 것을 표현하고 가르치는 데에도 재능이 있습니다.' : ''),
+      health: health
+    };
+  }
+
   var Fortune = {
-    daily: daily, yearly: yearly, ohengText: ohengText,
+    daily: daily, yearly: yearly, ohengText: ohengText, domains: domains,
     ILGAN_TXT: ILGAN_TXT, ELEM_DESC: ELEM_DESC, ELEM_LACK: ELEM_LACK
   };
   if (typeof module !== 'undefined' && module.exports) module.exports = Fortune;

@@ -120,6 +120,17 @@ td.lab,th.lab{width:52px;color:var(--dim);font-size:11px;text-align:left;padding
 .oh i.f3{background:var(--e3)}.oh i.f4{background:var(--e4)}
 .oh-txt{font-size:13px;color:var(--sub);line-height:1.65;margin-top:14px}
 .oh-txt b{color:var(--gold)}
+/* per-category fortune */
+.fcat{padding:14px 0;border-top:1px solid rgba(255,255,255,.07)}
+.fcat:first-of-type{border-top:none;padding-top:2px}
+.fhead{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.fhead b{font-size:14px;width:64px;flex:none}
+.fhead .bar{flex:1}
+.fhead span{color:var(--gold);font-weight:700;font-size:13px;width:40px;flex:none;text-align:right}
+.ftoday{font-size:13px;line-height:1.6;margin-bottom:6px}
+.fbase{font-size:12.5px;color:var(--sub);line-height:1.6}
+.ftag{display:inline-block;color:var(--gold2);font-size:11px;font-weight:700;margin-right:6px;
+  border:1px solid rgba(240,199,94,.3);border-radius:6px;padding:0 6px;vertical-align:1px}
 /* prose sections */
 .prose{font-size:14px;line-height:1.75;color:var(--ink)}
 .prose .badge{display:inline-block;background:rgba(240,199,94,.12);border:1px solid var(--line);
@@ -172,11 +183,12 @@ footer{text-align:center;color:var(--dim);font-size:11px;line-height:1.7;margin-
 
   <section id="result">
     <div class="navchips">
-      <a href="#sec-today">오늘의 운세</a><a href="#sec-year">올해</a><a href="#sec-ms">사주 명식</a>
+      <a href="#sec-today">오늘의 운세</a><a href="#sec-cats">분야별</a><a href="#sec-year">올해</a><a href="#sec-ms">사주 명식</a>
       <a href="#sec-oh">오행</a><a href="#sec-me">타고난 성품</a><a href="#sec-du">대운</a>
     </div>
     <div class="card" id="sec-greet"></div>
     <div class="card" id="sec-today"></div>
+    <div class="card" id="sec-cats"></div>
     <div class="card" id="sec-year"></div>
     <div class="card" id="sec-ms"></div>
     <div class="card" id="sec-oh"></div>
@@ -257,23 +269,27 @@ function render(input){
     S.ANIMALS[r.year.branch]+'띠입니다.</div>';
 
   /* 오늘의 운세 */
-  var catHtml = '';
-  df.cats.forEach(function(c){
-    catHtml += '<div class="cat"><div class="t"><b>'+c.label+'</b><span>'+c.score+'점</span></div>'+
-      '<div class="bar"><i style="width:'+c.score+'%"></i></div>'+
-      '<p>'+c.text+'</p></div>';
-  });
   $('sec-today').innerHTML =
     '<h2>오늘의 운세 <small>'+t.y+'.'+String(t.mo).padStart(2,'0')+'.'+String(t.d).padStart(2,'0')+
     ' · '+pillTxt(tp.day)+'일</small></h2>'+
     '<div class="hero"><div class="donut" style="--p:'+df.tot+'"><b>'+df.tot+'<small>총운</small></b></div>'+
     '<p>'+df.heroText+'</p></div>'+
-    '<div class="cats">'+catHtml+'</div>'+
     '<div class="lucky">'+
       '<div class="chip"><small>행운의 색</small><b>'+df.lucky.color+'</b></div>'+
       '<div class="chip"><small>행운의 숫자</small><b>'+df.lucky.num+'</b></div>'+
       '<div class="chip"><small>행운의 방향</small><b>'+df.lucky.dir+'</b></div>'+
     '</div>';
+
+  /* 분야별 운세 */
+  var dom = Fortune.domains(S, r);
+  var fcatHtml = '';
+  df.cats.forEach(function(c){
+    fcatHtml += '<div class="fcat">'+
+      '<div class="fhead"><b>'+c.label+'</b><div class="bar"><i style="width:'+c.score+'%"></i></div><span>'+c.score+'점</span></div>'+
+      '<p class="ftoday"><span class="ftag">오늘</span>'+c.text+'</p>'+
+      '<p class="fbase"><span class="ftag">타고난 흐름</span>'+dom[c.key]+'</p></div>';
+  });
+  $('sec-cats').innerHTML = '<h2>분야별 운세 <small>오늘 점수 + 원국 풀이</small></h2>'+fcatHtml;
 
   /* 올해의 운세 */
   var yf = Fortune.yearly(S, r, tp);
